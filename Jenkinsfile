@@ -31,7 +31,7 @@ pipeline {
                     java -jar bin/wiremock.jar --port 9090 --root-dir ./test/wiremock/ &
                 '''
                 sh 'sleep 5'
-		echo $WORKSPACE
+		sh 'echo $WORKSPACE'
             }
         }
         stage('Tests') {
