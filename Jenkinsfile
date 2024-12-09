@@ -25,7 +25,6 @@ pipeline {
                     java -jar bin/wiremock.jar --port 9090 --root-dir ./test/wiremock/ &
                 '''
                 sh 'sleep 5'
-		sh 'echo $WORKSPACE'
             }
         }
         stage('Tests') {
@@ -34,20 +33,20 @@ pipeline {
                     steps {
                         echo "Launching Unit Tests"
                         sh 'echo "Running Unit Tests"'
-                        sh 'python3 -m pytest test/unit'
+                        sh 'python3 -m pytest test/unit --junitxml=result-unit.xml'
                     }
                 }
                 stage('Rest') {
                     steps {
                         sh 'echo "Running Rest Tests"'
-                        sh 'python3 -m pytest test/rest'
+                        sh 'python3 -m pytest test/rest --junitxml=result-rest.xml'
                     }
                 }
             }
         }
         stage("JUnit"){
             steps {
-                echo "Stage for JUnit"
+                junit 'result*.xml'
             }
         }
     }
