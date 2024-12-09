@@ -2,12 +2,6 @@ pipeline {
     agent any
     
     stages {
-        stage('GetCode'){
-            steps {
-                echo "Downloading repository from github..."
-                git "https://github.com/JavierCulebras/practice_case_1.git"
-            }
-        }
         stage('Build'){
             steps {
                 echo "Nothing to build because it is Python!!"
