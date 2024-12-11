@@ -13,6 +13,7 @@ pipeline {
                     echo "Workspace: ${WORKSPACE}"
                     echo "Nothing to build because it is Python!!"
                 '''
+                stash includes: '**', name: 'workspace'
             }
         }
         stage('Service') {
@@ -39,9 +40,10 @@ pipeline {
             parallel {
                 stage('Unit') {
                     agent {
-                        label 'node-1' 
+                        label 'Node-1'
                     }
                     steps {
+                        unstash 'workspace'
                         sh '''
                             echo "Stage: Unit Tests"
                             whoami
@@ -55,9 +57,10 @@ pipeline {
                 }
                 stage('Rest') {
                     agent {
-                        label 'node-2'
+                        label 'Node-2'
                     }
                     steps {
+                        unstash 'workspace'
                         sh '''
                             echo "Stage: Rest Tests"
                             whoami
@@ -66,7 +69,7 @@ pipeline {
                             echo "Running Rest Tests"
                             python3 -m pytest test/rest --junitxml=result-rest.xml
                         '''
-                        stash includes: 'result-rest.xml', name: 'rest-results' 
+                        stash includes: 'result-rest.xml', name: 'rest-results'
                     }
                 }
             }
@@ -79,9 +82,9 @@ pipeline {
                     hostname
                     echo "Workspace: ${WORKSPACE}"
                 '''
-                unstash 'unit-results' 
-                unstash 'rest-results' 
-                junit 'result*.xml' 
+                unstash 'unit-results'
+                unstash 'rest-results'
+                junit 'result*.xml'
             }
         }
     }
