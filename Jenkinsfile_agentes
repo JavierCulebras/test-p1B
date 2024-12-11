@@ -53,6 +53,7 @@ pipeline {
                             python3 -m pytest test/unit --junitxml=result-unit.xml
                         '''
                         stash includes: 'result-unit.xml', name: 'unit-results'
+                        cleanWs()
                     }
                 }
                 stage('Rest') {
@@ -70,6 +71,7 @@ pipeline {
                             python3 -m pytest test/rest --junitxml=result-rest.xml
                         '''
                         stash includes: 'result-rest.xml', name: 'rest-results'
+                        cleanWs()
                     }
                 }
             }
@@ -85,6 +87,7 @@ pipeline {
                 unstash 'unit-results'
                 unstash 'rest-results'
                 junit 'result*.xml'
+                cleanWs()
             }
         }
     }
