@@ -1,0 +1,88 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+    
+    stages {
+        stage('Build') {
+            steps {
+                sh '''
+                    echo "Stage: Build"
+                    whoami
+                    hostname
+                    echo "Workspace: ${WORKSPACE}"
+                    echo "Nothing to build because it is Python!!"
+                '''
+            }
+        }
+        stage('Service') {
+            steps {
+                sh '''
+                    echo "Stage: Service"
+                    whoami
+                    hostname
+                    echo "Workspace: ${WORKSPACE}"
+                    echo "Installing dependencies"
+                    pip install --upgrade pip
+                    pip install pytest
+                    echo "Launching flask"
+                    export PYTHONPATH=$(pwd)
+                    export FLASK_APP=app/api.py
+                    flask run &
+                    echo "Launching Wiremock"
+                    java -jar bin/wiremock.jar --port 9090 --root-dir ./test/wiremock/ &
+                    sleep 5
+                '''
+            }
+        }
+        stage('Tests') {
+            parallel {
+                stage('Unit') {
+                    agent {
+                        label 'node-1' 
+                    }
+                    steps {
+                        sh '''
+                            echo "Stage: Unit Tests"
+                            whoami
+                            hostname
+                            echo "Workspace: ${WORKSPACE}"
+                            echo "Running Unit Tests"
+                            python3 -m pytest test/unit --junitxml=result-unit.xml
+                        '''
+                        stash includes: 'result-unit.xml', name: 'unit-results'
+                    }
+                }
+                stage('Rest') {
+                    agent {
+                        label 'node-2'
+                    }
+                    steps {
+                        sh '''
+                            echo "Stage: Rest Tests"
+                            whoami
+                            hostname
+                            echo "Workspace: ${WORKSPACE}"
+                            echo "Running Rest Tests"
+                            python3 -m pytest test/rest --junitxml=result-rest.xml
+                        '''
+                        stash includes: 'result-rest.xml', name: 'rest-results' 
+                    }
+                }
+            }
+        }
+        stage("JUnit") {
+            steps {
+                sh '''
+                    echo "Stage: JUnit"
+                    whoami
+                    hostname
+                    echo "Workspace: ${WORKSPACE}"
+                '''
+                unstash 'unit-results' 
+                unstash 'rest-results' 
+                junit 'result*.xml' 
+            }
+        }
+    }
+}
