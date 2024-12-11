@@ -32,7 +32,7 @@ pipeline {
                     export FLASK_APP=app/api.py
                     flask run &
                     echo "Launching Wiremock"
-                    java -jar bin/wiremock.jar --port 9090 --root-dir ./test/wiremock/ &
+                    java -jar bin/wiremock.jar --port 9090 --root-dir ./test/wiremock/ > /dev/null &
                     sleep 5
                 '''
             }
