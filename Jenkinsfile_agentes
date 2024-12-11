@@ -7,7 +7,6 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''
-                    echo "Stage: Build"
                     whoami
                     hostname
                     echo "Current node: ${NODE_NAME}"
@@ -20,9 +19,9 @@ pipeline {
         stage('Service') {
             steps {
                 sh '''
-                    echo "Stage: Service"
                     whoami
                     hostname
+                    echo "Current node: ${NODE_NAME}"
                     echo "Workspace: ${WORKSPACE}"
                     echo "Installing dependencies"
                     pip install --upgrade pip
@@ -46,7 +45,6 @@ pipeline {
                     steps {
                         unstash 'workspace'
                         sh '''
-                            echo "Stage: Unit Tests"
                             whoami
                             hostname
                             echo "Current node: ${NODE_NAME}"
@@ -65,7 +63,6 @@ pipeline {
                     steps {
                         unstash 'workspace'
                         sh '''
-                            echo "Stage: Rest Tests"
                             whoami
                             hostname
                             echo "Current node: ${NODE_NAME}"
@@ -82,7 +79,6 @@ pipeline {
         stage("JUnit") {
             steps {
                 sh '''
-                    echo "Stage: JUnit"
                     whoami
                     hostname
                     echo "Current node: ${NODE_NAME}"
