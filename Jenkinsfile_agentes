@@ -46,6 +46,7 @@ pipeline {
                         unstash 'workspace'
                         sh '''
                             echo "Stage: Unit Tests"
+                            echo "Current node: ${NODE_NAME}"
                             whoami
                             hostname
                             echo "Workspace: ${WORKSPACE}"
@@ -64,6 +65,7 @@ pipeline {
                         unstash 'workspace'
                         sh '''
                             echo "Stage: Rest Tests"
+                            echo "Current node: ${NODE_NAME}"
                             whoami
                             hostname
                             echo "Workspace: ${WORKSPACE}"
