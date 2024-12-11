@@ -10,6 +10,7 @@ pipeline {
                     echo "Stage: Build"
                     whoami
                     hostname
+                    echo "Current node: ${NODE_NAME}"
                     echo "Workspace: ${WORKSPACE}"
                     echo "Nothing to build because it is Python!!"
                 '''
@@ -46,9 +47,9 @@ pipeline {
                         unstash 'workspace'
                         sh '''
                             echo "Stage: Unit Tests"
-                            echo "Current node: ${NODE_NAME}"
                             whoami
                             hostname
+                            echo "Current node: ${NODE_NAME}"
                             echo "Workspace: ${WORKSPACE}"
                             echo "Running Unit Tests"
                             python3 -m pytest test/unit --junitxml=result-unit.xml
@@ -65,9 +66,9 @@ pipeline {
                         unstash 'workspace'
                         sh '''
                             echo "Stage: Rest Tests"
-                            echo "Current node: ${NODE_NAME}"
                             whoami
                             hostname
+                            echo "Current node: ${NODE_NAME}"
                             echo "Workspace: ${WORKSPACE}"
                             echo "Running Rest Tests"
                             python3 -m pytest test/rest --junitxml=result-rest.xml
