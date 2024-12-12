@@ -57,10 +57,8 @@ class TestApi(unittest.TestCase):
         )
 
     def test_api_divide_by_zero(self):
-        # Construimos la URL para dividir por cero
         url = f"{BASE_URL}/calc/divide/5/0"
         try:
-            # Hacemos la petición
             response = urlopen(url, timeout=DEFAULT_TIMEOUT)
             self.fail(f"La API no devolvió un error HTTP 406 para {url}")
         except HTTPError as e:
@@ -68,8 +66,9 @@ class TestApi(unittest.TestCase):
                 e.code, http.client.NOT_ACCEPTABLE,
                 f"Se esperaba HTTP 406, pero se recibió {e.code} para {url}"
             )
+            error_message = e.read().decode() 
             self.assertIn(
-                "Division by zero", e.reason,
+                "Division by zero", error_message,
                 "El mensaje de error no contiene 'Division by zero'"
             )
 
