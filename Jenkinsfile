@@ -18,11 +18,11 @@ pipeline {
                 sh '''
                     export PYTHONPATH=$(pwd)
                     export FLASK_APP=app/api.py
-                    sleep 10 && flask run &
+                    flask run &
                 '''
                 sh 'echo "Launching Wiremock"'
                 sh '''
-                    sleep 10 && java -jar bin/wiremock.jar --port 9090 --root-dir ./test/wiremock/ &
+                    java -jar bin/wiremock.jar --port 9090 --root-dir ./test/wiremock/ &
                 '''
                 sh 'sleep 5'
             }
