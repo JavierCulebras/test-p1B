@@ -68,7 +68,7 @@ class TestApi(unittest.TestCase):
             )
             error_message = e.read().decode() 
             self.assertIn(
-                "Division by zero", error_message,
+                "Division by zero is not possible", error_message,
                 "El mensaje de error no contiene 'Division by zero'"
             )
 
