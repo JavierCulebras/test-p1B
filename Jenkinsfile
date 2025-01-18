@@ -1,55 +1,31 @@
-pipeline {
-    agent any
-    
-    stages {
-        stage('Build'){
-            steps {
-                echo "Nothing to build because it is Python!!"
-            }
+stages {
+    stage('Get Code') {
+        steps {
+            git 'git@github.com:JavierCulebras/practice_case_1.git'
+            sh 'ls -la'
+            echo WORKSPACE
         }
-        stage('Service') {
-            steps {
+    }
+
+    stage('Unit') {
+        steps {
+            catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                 sh '''
-                            echo "Installing dependencies"
-                            pip install --upgrade pip
-                            pip install pytest
-                        '''
-                sh 'echo "Launching flask"'
-                sh '''
-                    export PYTHONPATH=$(pwd)
-                    export FLASK_APP=app/api.py
-                    flask run &
+                export PYTHONPATH=.
+                pytest --junitxml=result-unit.xml test/unit
                 '''
-                sh 'echo "Launching Wiremock"'
-                sh '''
-                    java -jar bin/wiremock.jar --port 9090 --root-dir ./test/wiremock/ &
-                '''
-                sh 'sleep 5'
-            }
-        }
-        stage('Tests') {
-            parallel {
-                stage('Unit') {
-                    steps {
-                        echo "Launching Unit Tests"
-                        sh 'echo "Running Unit Tests"'
-                        sh 'python3 -m pytest test/unit --junitxml=result-unit.xml'
-                    }
-                }
-                stage('Rest') {
-                    steps {
-                        sh 'echo "Running Rest Tests"'
-                        sh 'python3 -m pytest test/rest --junitxml=result-rest.xml'
-                    }
-                }
-            }
-        }
-        stage("JUnit"){
-            steps {
                 junit 'result*.xml'
             }
         }
     }
+
+    stage('Coverage') {
+        steps {
+            sh '''
+            coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest test/unit
+            coverage xml
+            '''
+            cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,0,80', lineCoverageTargets: '100,0,90'
+        }
+    }
 }
-    
-    
