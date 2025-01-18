@@ -10,7 +10,7 @@ pipeline {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
                     export PYTHONPATH=.
-                    pytest --junitxml=result-unit.xml test/unit
+                    python3 -m pytest test/unit --junitxml=result-unit.xml
                     '''
                     junit 'result*.xml'
                 }
