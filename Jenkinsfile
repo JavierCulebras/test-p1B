@@ -1,33 +1,82 @@
 pipeline {
-    agent {
-        label 'master'
+    agent any
+
+    environment {
+        PYTHONPATH = "${WORKSPACE}"
+        FLASK_APP = "app/api.py"
     }
 
     stages {
 
-        stage('Unit') {
+        stage('Unit Tests') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
-                    export PYTHONPATH=.
                     pytest --junitxml=result-unit.xml test/unit
                     '''
-                    junit 'result*.xml'
+                    junit 'result-unit*.xml'
                 }
+            }
+        }
+
+        stage('REST Tests') {
+            steps {
+                sh '''
+                    echo "Current node: ${NODE_NAME}"
+                    echo "Workspace: ${WORKSPACE}"
+                    echo "Installing dependencies"
+                    echo "Launching flask"
+                    nohup flask run > flask.log 2>&1 &
+                    echo "Launching Wiremock"
+                    nohup java -jar bin/wiremock.jar --port 9090 --root-dir ./test/wiremock/ > wiremock.log 2>&1 &
+                    sleep 5
+                    echo "Current node: ${NODE_NAME}"
+                    echo "Workspace: ${WORKSPACE}"
+                    echo "Running Rest Tests"
+                    pytest --junitxml=result-rest.xml test/rest
+                '''
+                junit 'result-rest.xml'
+            }
+        }
+
+        stage('Static Analysis') {
+            steps {
+                sh '''
+                flake8 --exit-zero --format=pylint app > flake8.out
+                '''
+                recordIssues(
+                    tools: [flake8(name: 'Flake8', pattern: 'flake8.out')],
+                    qualityGates: [
+                        [threshold: 10, type: 'TOTAL', unstable: true],
+                        [threshold: 11, type: 'TOTAL', unstable: false]
+                    ]
+                )
+            }
+        }
+
+        stage('Security Analysis') {
+            steps {
+                sh '''
+                bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
+                '''
+                recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')], 
+                qualityGates: [[threshold: 5, type: 'TOTAL', unstable: true], 
+                [threshold: 8, type: 'TOTAL', unstable: false]]
+
             }
         }
 
         stage('Coverage') {
             steps {
-                sh '''
-                coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest test/unit
-                coverage xml
-                '''
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
+                    sh '''
+                    coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest test/unit test/rest
+                    coverage xml
+                    '''
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,0,80', lineCoverageTargets: '100,0,90'
                 }
             }
         }
-    }
 
+    }
 }
