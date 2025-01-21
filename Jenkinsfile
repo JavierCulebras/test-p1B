@@ -90,6 +90,21 @@ pipeline {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,0,80', lineCoverageTargets: '100,0,90'
                 }
+                
+            }
+
+        }
+
+        stage('Performance'){
+            steps{
+
+                sh '''
+                nohup flask run > flask.log 2>&1 &
+                sleep 3
+                '''
+                sh '/home/jcmz/apache-jmeter-5.6.3/bin/jmeter-sh -n -t jmeter/test-plan.jmx -l flask.jtl'
+
+                perfReport sourceDataFiles: 'flask.jtl'
             }
         }
 
