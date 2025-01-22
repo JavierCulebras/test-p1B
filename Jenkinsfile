@@ -65,7 +65,9 @@ pipeline {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
-                    bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{relpath}:{line}: [{test_id}] {msg}"
+                    ls
+                    rm -f bandit.out
+                    bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                     '''
                     recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')], 
                     qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], 
@@ -109,6 +111,12 @@ pipeline {
                 sh 'apache-jmeter-5.6.3/bin/jmeter.sh -n -t jmeter/test-plan.jmx -l flask.jtl'
 
                 perfReport sourceDataFiles: 'flask.jtl'
+            }
+        }
+
+        post {
+            always {
+                cleanWs() // Limpia el workspace al finalizar el pipeline
             }
         }
 
