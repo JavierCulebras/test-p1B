@@ -65,7 +65,7 @@ pipeline {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
-                    bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
+                    bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{relpath}:{line}: [{test_id}] {msg}"
                     '''
                     recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')], 
                     qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], 
@@ -104,7 +104,7 @@ pipeline {
                 nohup flask run > flask.log 2>&1 &
                 sleep 3
                 wget -q https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz
-                tar -xzf jmeter/apache-jmeter-5.6.3.tgz
+                tar -xzf apache-jmeter-5.6.3.tgz
                 '''
                 sh 'apache-jmeter-5.6.3/bin/jmeter.sh -n -t jmeter/test-plan.jmx -l flask.jtl'
 
