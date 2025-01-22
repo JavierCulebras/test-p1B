@@ -8,12 +8,14 @@ pipeline {
 
     stages {
 
+
         stage('Unit Tests') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
                     coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
                     mv .coverage .coverage.unit
+                    ls
                     '''
             
                     stash includes: '.coverage.unit', name: 'unit-coverage'
@@ -114,11 +116,10 @@ pipeline {
             }
         }
 
-        post {
-            always {
-                cleanWs() // Limpia el workspace al finalizar el pipeline
-            }
+    }
+    post {
+        always {
+            cleanWs() // Limpia el workspace al finalizar el pipeline
         }
-
     }
 }
