@@ -7,10 +7,11 @@ pipeline {
     }
 
     stages {
+
         stage('Parallel Execution') {
             parallel {
                 stage('Unit Tests') {
-                    agent any
+                    agent { label 'node-1' }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             sh '''
@@ -28,7 +29,7 @@ pipeline {
                 }
 
                 stage('Static Analysis') {
-                    agent any
+                    agent { label 'node-2' }
                     steps {
                         sh '''
                         whoami
@@ -44,11 +45,12 @@ pipeline {
                                 [threshold: 10, type: 'TOTAL', unstable: false]
                             ]
                         )
+                        
                     }
                 }
 
                 stage('Security Analysis') {
-                    agent any
+                    agent { label 'node-2' }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             sh '''
@@ -62,13 +64,14 @@ pipeline {
                             qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], 
                             [threshold: 4, type: 'TOTAL', unstable: false]]
                         }
+                        
                     }
                 }
             }
         }
 
         stage('REST Tests') {
-            agent any
+            agent { label 'node-1' }
             steps {
                 sh '''
                 whoami
@@ -83,11 +86,12 @@ pipeline {
                 '''
                 stash includes: '.coverage.rest', name: 'rest-coverage'
                 junit 'result-rest.xml'
+                
             }
         }
 
         stage('Coverage') {
-            agent any
+            agent { label 'node-1' }
             steps {
                 script {
                     unstash 'unit-coverage'
@@ -105,11 +109,12 @@ pipeline {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '90,80,80', lineCoverageTargets: '95,85,85', onlyStable: false
                 }
+                
             }
         }
 
         stage('Performance') {
-            agent any
+            agent { label 'master' }
             steps {
                 sh '''
                 whoami
@@ -123,6 +128,20 @@ pipeline {
                 '''
                 sh 'apache-jmeter-5.6.3/bin/jmeter.sh -n -t jmeter/test-plan.jmx -l flask.jtl'
                 perfReport sourceDataFiles: 'flask.jtl'
+                
+            }
+        }
+    }
+    post {
+        always {
+            node('node-1') {
+                cleanWs()
+            }
+            node('node-2') {
+                cleanWs()
+            }
+            node('master') {
+                cleanWs()
             }
         }
     }
