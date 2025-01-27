@@ -8,8 +8,7 @@ pipeline {
 
     stages {
         stage('Unit Tests and REST Tests') {
-            parallel{
-                
+            stages {
                 stage('Unit Tests') {
                     agent { label 'master' }
                     steps {
@@ -55,9 +54,6 @@ pipeline {
                         junit 'result-rest.xml'
                     }
                 }
-
-                
-            
             }
         }
 
