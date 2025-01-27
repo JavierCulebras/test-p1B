@@ -91,9 +91,13 @@ pipeline {
                                 rm -f bandit.out
                                 bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                             '''
-                            recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')], 
-                            qualityGates: [[threshold: 2, type: 'TOTAL', unstable: true], 
-                            [threshold:4, type: 'TOTAL', unstable: false]]
+                            recordIssues(
+                                tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')],
+                                qualityGates: [
+                                    [threshold: 2, type: 'TOTAL', unstable: true],
+                                    [threshold: 4, type: 'TOTAL', unstable: false]
+                                ]
+                            )
                         }
                     }
                 }
@@ -116,11 +120,8 @@ pipeline {
                     }   
                 }
             }
-
-       
-
-        
         }
+    }
 
     post {
         always {
@@ -134,6 +135,5 @@ pipeline {
                 cleanWs()  // Limpieza en node-2
             }
         }
-    }
     }
 }
