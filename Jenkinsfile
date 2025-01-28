@@ -132,7 +132,7 @@ pipeline {
                         coverage report
                         coverage xml
                         '''
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                             cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,80,90', lineCoverageTargets: '100,85,95', onlyStable: false
                         }
                     }

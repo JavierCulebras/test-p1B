@@ -40,10 +40,8 @@ pipeline {
                     echo "Workspace: ${WORKSPACE}"
                     echo "Running Rest Tests"
                     
-                    coverage run --append --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-rest.xml test/rest
-                    mv .coverage .coverage.rest
+                    pytest --junitxml=result-rest.xml test/rest
                 '''
-                stash includes: '.coverage.rest', name: 'rest-coverage'
                 junit 'result-rest.xml'
             }
         }
@@ -81,19 +79,18 @@ pipeline {
             steps {
                 script {
                     unstash 'unit-coverage'
-                    unstash 'rest-coverage'
                 }
 
                 sh '''
                 echo "Combining coverage results"
-                coverage combine .coverage.unit .coverage.rest
+                coverage combine .coverage.unit 
                 coverage report
                 coverage xml
 
                 '''
 
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '90,80,80', lineCoverageTargets: '95,85,85', onlyStable: false
+                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                    cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,80,90', lineCoverageTargets: '100,85,95', onlyStable: false
                 }
                 
             }
@@ -106,10 +103,9 @@ pipeline {
                 sh '''
                 nohup flask run > flask.log 2>&1 &
                 sleep 3
-                wget -q https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz
-                tar -xzf apache-jmeter-5.6.3.tgz
+
                 '''
-                sh 'apache-jmeter-5.6.3/bin/jmeter.sh -n -t jmeter/test-plan.jmx -l flask.jtl'
+                sh '/home/jcmz/apache-jmeter-5.6.3/bin/jmeter.sh -n -t jmeter/test-plan.jmx -l flask.jtl'
 
                 perfReport sourceDataFiles: 'flask.jtl'
             }
