@@ -128,11 +128,12 @@ pipeline {
 
                         sh '''
                         echo "Coverage results"
+                        coverage combine .coverage.unit 
                         coverage report
                         coverage xml
                         '''
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '90,80,90', lineCoverageTargets: '95,85,95', onlyStable: false
+                            cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,80,90', lineCoverageTargets: '100,85,95', onlyStable: false
                         }
                     }
                 }
