@@ -126,12 +126,12 @@ pipeline {
                         sh 'hostname'
                         script {
                             unstash 'unit-coverage'
-                            unstash 'rest-coverage'
+                            
                         }
 
                         sh '''
                         echo "Combining coverage results"
-                        coverage combine .coverage.unit .coverage.rest
+                        coverage combine .coverage.unit 
                         coverage report
                         coverage xml
                         '''
