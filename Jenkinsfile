@@ -112,10 +112,8 @@ pipeline {
                         sh '''
                             nohup flask run > flask.log 2>&1 &
                             sleep 3
-                            wget -q https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz
-                            tar -xzf apache-jmeter-5.6.3.tgz
                         '''
-                        sh 'apache-jmeter-5.6.3/bin/jmeter.sh -n -t jmeter/test-plan.jmx -l flask.jtl'
+                        sh '/home/jcmz/apache-jmeter-5.6.3/bin/jmeter.sh -n -t jmeter/test-plan.jmx -l flask.jtl'
                         perfReport sourceDataFiles: 'flask.jtl'
                     }   
                 }
