@@ -117,6 +117,26 @@ pipeline {
                         perfReport sourceDataFiles: 'flask.jtl'
                     }   
                 }
+                stage('Coverage') {
+                    agent { label 'master' }
+                    steps {
+                        echo "Executing on agent: ${NODE_NAME}"
+                        echo "Current workspace: ${WORKSPACE}"
+                        sh 'whoami'
+                        sh 'hostname'
+                        script {
+                            unstash 'unit-coverage'
+                            unstash 'rest-coverage'
+                        }
+
+                        sh '''
+                        echo "Combining coverage results"
+                        coverage combine .coverage.unit .coverage.rest
+                        coverage report
+                        coverage xml
+                        '''
+                    }
+                }
             }
         }
     }
