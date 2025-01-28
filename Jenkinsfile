@@ -47,10 +47,8 @@ pipeline {
                         echo "Running Rest Tests"
                         '''
                         sh '''
-                            coverage run --append --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-rest.xml test/rest
-                            mv .coverage .coverage.rest
+                            pytest --junitxml=result-rest.xml test/rest
                         '''
-                        stash includes: '.coverage.rest', name: 'rest-coverage'
                         junit 'result-rest.xml'
                     }
                 }
@@ -126,17 +124,15 @@ pipeline {
                         sh 'hostname'
                         script {
                             unstash 'unit-coverage'
-                            
                         }
 
                         sh '''
-                        echo "Combining coverage results"
-                        coverage combine .coverage.unit 
+                        echo "Coverage results"
                         coverage report
                         coverage xml
                         '''
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            ccobertura coberturaReportFile: 'coverage.xml', onlyStable: false, conditionalCoverageTargets: '90,0,80', lineCoverageTargets: '95,0,85'
+                            cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '90,80,90', lineCoverageTargets: '95,85,95', onlyStable: false
                         }
                     }
                 }
